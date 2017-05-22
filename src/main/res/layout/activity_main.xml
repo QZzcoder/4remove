@@ -9,8 +9,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.catchcat.MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
+    <com.example.catchcat.CatMap
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 </RelativeLayout>
