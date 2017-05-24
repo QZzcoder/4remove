@@ -4,12 +4,10 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.TextView;
 
 /**
  * Created by 王国晟 on 2017/5/22.
@@ -27,13 +25,21 @@ public class FourRemove extends View {
     private final int ready[] = new int[3];
     private final int mapX = 9;//宽度
     private final int mapY = 9;//高度
-    private TextView scoreText;
+    private int list[] = new int[50];
+    private int am = 0;
 
     private enum state{//游戏状态
         OVER,START
     }
     private state currentState;
     private Paint paint;
+    class Side{
+        int y,x;
+        Side(int y,int x){
+            this.y = y;
+            this.x = x;
+        }
+    }
     public FourRemove(Context context,AttributeSet attr){
         super(context,attr);
         DisplayMetrics dm = getResources().getDisplayMetrics();
@@ -118,17 +124,42 @@ public class FourRemove extends View {
                     map[y][x-1] == 0|| map[y+1][x+1] == 0|| map[y-1][x+1] == 0);
         }
     }
-    private int testRemove(int y,int x,int color){
-        return 0;
+    private void testRemove(int y,int x,int color){
+        list[am++] = y;
+        list[am++] = x;
+        if(map[y+1][x] == color){map[y+1][x] = 0;testRemove(y+1,x,color);}
+        if(map[y-1][x] == color){map[y-1][x] = 0;testRemove(y-1,x,color);}
+        if(map[y][x+1] == color){map[y][x+1] = 0;testRemove(y,x+1,color);}
+        if(map[y][x-1] == color){map[y][x-1] = 0;testRemove(y,x-1,color);}
+        if(y%2 == 0){
+            if(map[y+1][x-1] == color){map[y+1][x-1] = 0;testRemove(y+1,x-1,color);}
+            if(map[y-1][x-1] == color){map[y-1][x-1] = 0;testRemove(y-1,x-1,color);}
+        }else {
+            if (map[y + 1][x + 1] == color) {map[y + 1][x + 1] = 0;testRemove(y + 1, x + 1, color);}
+            if (map[y - 1][x + 1] == color) {map[y - 1][x + 1] = 0;testRemove(y - 1, x + 1, color);}
+        }
     }
     public void setMap(int y,int x){
         if(map[y][x] != 0 || currentState == state.OVER){return;}
         map[y][x] = ready[0];
-        updateReady();
+        testRemove(y,x,ready[0]);
+        if(am < 10){
+            for(int i = 0;i < am;i+=2){
+                int nowY = list[i];
+                int nowX = list[i+1];
+                map[nowY][nowX] = ready[0];
+            }
+        }else{
+            score += (am-4)*removeScore;
+        }
+        score = score + stepScore;
         curX = x;
         curY = y;
-        score = score + stepScore + testRemove(y,x,ready[0]);
+        map[curY][curX] = ready[0];
+        updateReady();
         if(testOver(curY,curX)){currentState = state.OVER;}
+        list = new int[50];
+        am = 0;
         invalidate();
     }
 
@@ -186,8 +217,8 @@ public class FourRemove extends View {
             }
         }
         paint.setColor(Color.BLACK);
-        X = curY%2 == 0?radiu:radiu*2;
-        canvas.drawCircle(X+curX*2*radiu,Y+curY*(float)Math.sqrt(3)*radiu,radiu/3,paint);
+        X = curY % 2 == 0 ? radiu : radiu * 2;
+        canvas.drawCircle(X+curX*2*radiu,Y+curY * (float)Math.sqrt(3)*radiu, radiu / 3, paint);
 
         paint.setTextSize(50);
         paint.setColor(Color.BLACK);
